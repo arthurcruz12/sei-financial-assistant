@@ -3,6 +3,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
+from ine_current import ine_period_to_timestamp, infer_ine_frequency
 from macro_analysis import MacroEconometricsAgent
 from macro_data import EurostatConnector, INEConnector, OfficialSeries, _infer_frequency, _period_to_timestamp
 from sei_macro_runtime import MacroIntentParser
@@ -12,6 +13,15 @@ class PeriodParsingTests(unittest.TestCase):
     def test_ine_month_period(self):
         self.assertEqual(str(_period_to_timestamp("202608").date()), "2026-08-31")
         self.assertEqual(str(_period_to_timestamp("S3A202608").date()), "2026-08-31")
+
+    def test_current_ine_portuguese_month(self):
+        self.assertEqual(str(ine_period_to_timestamp("Agosto de 2026").date()), "2026-08-31")
+        self.assertEqual(str(ine_period_to_timestamp("Março de 2026").date()), "2026-03-31")
+        self.assertEqual(infer_ine_frequency(["Agosto de 2026", "Julho de 2026"]), "M")
+
+    def test_current_ine_portuguese_quarter(self):
+        self.assertEqual(str(ine_period_to_timestamp("2.º Trimestre de 2026").date()), "2026-06-30")
+        self.assertEqual(infer_ine_frequency(["2.º Trimestre de 2026", "1.º Trimestre de 2026"]), "Q")
 
     def test_quarter_period(self):
         self.assertEqual(str(_period_to_timestamp("2026-Q2").date()), "2026-06-30")
