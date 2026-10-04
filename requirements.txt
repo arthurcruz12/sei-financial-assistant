@@ -1,0 +1,6 @@
+openai>=1.0.0
+streamlit>=1.39.0
+yfinance>=0.2.54
+pandas>=2.2.0
+numpy>=2.0.0
+statsmodels>=0.14.0
