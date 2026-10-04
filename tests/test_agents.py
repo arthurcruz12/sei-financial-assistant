@@ -1,7 +1,7 @@
 import unittest
 
 from sei_agents import FinancialMathAgent
-from sei_runtime import RichRouterAgent
+from sei_router import BetterRouterAgent
 
 
 class NoLLM:
@@ -11,7 +11,7 @@ class NoLLM:
 
 class RouterTests(unittest.TestCase):
     def setUp(self):
-        self.router = RichRouterAgent(NoLLM())
+        self.router = BetterRouterAgent(NoLLM())
 
     def test_probability_request_extracts_symbol_target_and_horizon(self):
         route = self.router.route("Qual a chance de AAPL atingir 300 em 20 dias?")
@@ -24,6 +24,10 @@ class RouterTests(unittest.TestCase):
         route = self.router.route("A Nvidia está sobrecomprada ou esticada?")
         self.assertEqual(route.intent, "market_analysis")
         self.assertEqual(route.symbol, "NVDA")
+
+    def test_article_is_not_treated_as_ticker(self):
+        route = self.router.route("A Apple está com força compradora?")
+        self.assertEqual(route.symbol, "AAPL")
 
     def test_brazilian_ticker(self):
         route = self.router.route("Analisa o RSI de PETR4")
