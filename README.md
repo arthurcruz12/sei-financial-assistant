@@ -27,7 +27,7 @@ The user talks to one SEI chat. Internally, specialist agents handle the work:
 `macro_data.py` provides direct connectors without webpage scraping:
 
 - **ECB Data Portal API (SDMX)** — Euribor 3M/6M/12M and the ECB deposit facility rate presets, plus generic ECB flow/key access.
-- **Eurostat Statistics API (JSON-stat)** — Portugal HICP inflation, unemployment and real-GDP growth presets, plus generic dataset/filter access.
+- **Eurostat Statistics API (JSON-stat)** — the chat uses the current `prc_hicp_minr` HICP structure for Portugal inflation, plus unemployment/GDP datasets and generic dataset/filter access.
 - **INE Portugal JSON indicator API** — Portugal CPI inflation, real-GDP growth and unemployment presets, plus generic indicator/dimension access.
 - **FRED API** — CPI, unemployment, real GDP and Fed Funds presets. `FRED_API_KEY` is required by FRED.
 - **OECD Data Explorer SDMX API** — generic flow/key access and a Portugal unemployment preset used by the chat.
@@ -115,7 +115,7 @@ The GitHub workflow runs two layers:
 - deterministic unit/parser/econometrics tests;
 - live smoke tests against the public ECB, Eurostat, INE and OECD APIs.
 
-FRED live smoke testing is enabled automatically when `FRED_API_KEY` is configured in the environment.
+An INE network timeout from a CI runner is treated as an external availability skip, while malformed responses still fail the test. FRED live smoke testing is enabled automatically when `FRED_API_KEY` is configured in the environment.
 
 ## Current scope
 
