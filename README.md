@@ -27,7 +27,7 @@ The user talks to one SEI chat. Internally, specialist agents handle the work:
 `macro_data.py` provides direct connectors without webpage scraping:
 
 - **ECB Data Portal API (SDMX)** — Euribor 3M/6M/12M and the ECB deposit facility rate presets, plus generic ECB flow/key access.
-- **Eurostat Statistics API (JSON-stat)** — the chat uses the current `prc_hicp_minr` HICP structure for Portugal inflation, plus unemployment/GDP datasets and generic dataset/filter access.
+- **Eurostat Statistics API (JSON-stat)** — the chat uses the current `prc_hicp_minr` HICP structure for Portugal inflation (`coicop18=TOTAL`), plus unemployment/GDP datasets and generic dataset/filter access.
 - **INE Portugal JSON indicator API** — Portugal CPI inflation, real-GDP growth and unemployment presets, plus generic indicator/dimension access.
 - **FRED API** — CPI, unemployment, real GDP and Fed Funds presets. `FRED_API_KEY` is required by FRED.
 - **OECD Data Explorer SDMX API** — generic flow/key access and a Portugal unemployment preset used by the chat.
@@ -102,7 +102,7 @@ Pesquise a decisão mais recente do BCE.
 
 The GitHub workflow runs deterministic unit/parser/econometrics tests plus live smoke tests against the public ECB, Eurostat, INE and OECD APIs. An INE connection timeout from a CI runner is treated as an external availability skip, while malformed responses still fail. FRED smoke testing runs when `FRED_API_KEY` is configured.
 
-The live smoke suite has already verified direct ECB and OECD connectivity. Eurostat's 2026 HICP migration was detected by the smoke test and the chat connector was updated to `prc_hicp_minr`; subsequent workflow runs validate that current structure.
+The live smoke suite has verified direct ECB and OECD connectivity. Eurostat's 2026 HICP migration was detected by the smoke test and the chat connector was updated to `prc_hicp_minr` with the current ECOICOP-2018 total category.
 
 ## Current scope
 
