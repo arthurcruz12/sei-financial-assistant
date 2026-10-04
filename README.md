@@ -2,63 +2,73 @@
 
 SEI is a conversational quantitative assistant for economics, markets, mathematics, statistics and econometrics.
 
-The core rule is simple:
-
 > **AI interprets and researches. Deterministic Python code calculates.**
 
 The chat must not invent prices, indicators, probabilities or econometric results.
 
 ## Multi-agent architecture
 
-The user talks to one SEI chat. Internally, an orchestrator routes the request to specialist agents:
+The user talks to one SEI chat. Internally, specialist agents handle the work:
 
-- **Router Agent** — understands natural Portuguese/English financial language and selects the correct specialist.
-- **Research Agent** — uses the OpenAI Responses API web-search tool for current public information and primary sources.
-- **Vision Agent** — reads chart screenshots to identify visible ticker/timeframe/pattern context; it does not use pixels as a substitute for market data.
-- **Market Data Agent** — retrieves real OHLCV market data using `yfinance`.
-- **Technical Analysis Agent** — EMA 20/50/200, RSI, MACD, ATR, Bollinger Bands, relative volume, support/resistance, breakouts and regime matching.
-- **Statistics Agent** — returns, volatility, confidence intervals, drawdown, Sharpe, Sortino and positive-day frequency.
-- **Econometrics Agent** — OLS with HC3 robust errors, ADF and Granger predictive-precedence tests.
-- **Financial Math Agent** — deterministic compound-interest, loan-payment and real-return calculations.
-- **Validator Agent** — suppresses unsupported market probabilities and checks quantitative outputs.
+- **Router Agent** — natural PT/EN financial language and intent routing.
+- **Research Agent** — current web research with primary-source preference.
+- **Vision Agent** — reads chart screenshots for visible context, never as a substitute for raw prices.
+- **Market Data Agent** — real OHLCV through `yfinance`.
+- **Technical Analysis Agent** — EMA 20/50/200, RSI, MACD, ATR, Bollinger, relative volume, support/resistance, breakout regimes and historical matching.
+- **Statistics Agent** — returns, volatility, confidence intervals, drawdown, Sharpe and Sortino.
+- **Econometrics Agent** — OLS/HC3, ADF and Granger for market series.
+- **Official Macro Data Agent** — ECB/BCE, Eurostat, INE Portugal, FRED and OECD.
+- **Macro Econometrics Agent** — aligns market and official macro series in a common frequency and estimates OLS/HC3, correlations, ADF and Granger when appropriate.
+- **Financial Math Agent** — deterministic financial formulas.
+- **Validator Agent** — suppresses unsupported quantitative claims.
+
+## Official macroeconomic data
+
+`macro_data.py` provides direct connectors without webpage scraping:
+
+- **ECB Data Portal API (SDMX)** — Euribor 3M/6M/12M and the ECB deposit facility rate presets, plus generic ECB flow/key access.
+- **Eurostat Statistics API (JSON-stat)** — Portugal HICP inflation, unemployment and real-GDP growth presets, plus generic dataset/filter access.
+- **INE Portugal JSON indicator API** — Portugal CPI inflation, real-GDP growth and unemployment presets, plus generic indicator/dimension access.
+- **FRED API** — CPI, unemployment, real GDP and Fed Funds presets. `FRED_API_KEY` is required by FRED.
+- **OECD Data Explorer SDMX API** — generic flow/key access and a Portugal unemployment preset used by the chat.
+
+Every `OfficialSeries` carries source, series ID, frequency, unit, exact request URL and metadata so the result can expose provenance.
+
+## Market + macro econometrics
+
+The SEI can now receive a question such as:
+
+```text
+Cruza SPY com inflação e Euribor nos últimos 10 anos.
+```
+
+The engine:
+
+1. retrieves SPY market prices;
+2. retrieves inflation from INE and Euribor from the ECB;
+3. converts the market to period returns;
+4. aligns all series to the coarsest macro frequency;
+5. removes dates without common observations;
+6. estimates OLS with HC3 robust standard errors;
+7. returns coefficients, p-values, R², adjusted R² and the correlation matrix;
+8. runs ADF tests and, for suitable two-series cases, Granger predictive-precedence tests;
+9. returns the original source URLs and methodology notes.
+
+A macro/market regression is **not automatically a causal model**. Also, ordinary reference-period data do not preserve the exact historical publication timestamp or vintage. The SEI therefore warns that such results must not be interpreted as a look-ahead-free trading backtest unless vintage/release-date handling is added.
 
 ## Probability policy
 
-SEI does **not** let the LLM invent statements such as “72% chance of rising”.
+SEI does **not** let the LLM invent statements such as “72% chance of rising”. Technical-market probabilities come from historically comparable regimes and are suppressed below 30 comparable observations.
 
-For technical-market probabilities the engine:
-
-1. identifies the current technical regime;
-2. finds historically comparable observations;
-3. evaluates forward returns over the requested horizon;
-4. reports sample size and confidence;
-5. suppresses probabilities when there are fewer than 30 comparable cases.
-
-For a question such as:
-
-> `Qual a chance de AAPL atingir 300 em 20 pregões?`
-
-SEI converts the target into the **percentage return required from today's price**, then tests whether historical comparable regimes achieved at least that return within the same horizon. It does not compare today's nominal target against old nominal share prices.
+For a target-price question, SEI converts today's target into the percentage return required and tests that same relative move on historical comparable regimes instead of comparing nominal prices across eras.
 
 ## Vocabulary
 
-The deterministic fallback understands a broad PT/EN vocabulary including concepts such as:
-
-- support/resistance, suporte/resistência;
-- breakout, breakdown, pullback, retest;
-- overbought/sobrecomprado, oversold/sobrevendido;
-- momentum, divergence, volume, VWAP, RSI, MACD, EMA, ATR, ADX;
-- volatility, drawdown, Sharpe, Sortino, confidence interval;
-- OLS, Logit/Probit vocabulary, heteroskedasticity, autocorrelation, ADF, cointegration, Granger, ARIMA, VAR, VECM and GARCH;
-- inflation, GDP, Euribor, central-bank rates, yields and other macroeconomic terminology.
-
-With an OpenAI model configured, the Router Agent handles much broader natural-language paraphrases as well.
+The fallback understands broad Portuguese/English vocabulary across technical analysis, statistics, econometrics and macroeconomics, including support/resistance, breakout, pullback, overbought/oversold, drawdown, Sharpe, Sortino, OLS, ADF, Granger, cointegration, ARIMA, VAR, GARCH, inflation, GDP/PIB, unemployment, Euribor, policy rates and yields.
 
 ## Chart screenshots
 
-A chart image can be uploaded in the Streamlit interface.
-
-The Vision Agent extracts only visible context such as asset, timeframe, indicators and patterns. Whenever an asset can be identified, quantitative calculations are performed from original market data instead of measurements inferred from screenshot pixels.
+A chart image can be uploaded in the Streamlit interface. Vision extracts visible asset/timeframe/pattern context; whenever an asset is identified, quantitative calculations use original market data rather than pixel measurements.
 
 ## Run locally
 
@@ -68,14 +78,15 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Set environment variables:
+Set environment variables as needed:
 
 ```bash
 export OPENAI_API_KEY="..."
 export OPENAI_MODEL="..."
+export FRED_API_KEY="..."   # only required for FRED
 ```
 
-Then run:
+Then:
 
 ```bash
 streamlit run streamlit_app.py
@@ -86,12 +97,26 @@ streamlit run streamlit_app.py
 ```text
 Analisa NVDA em 10 pregões.
 Qual a chance de AAPL atingir 300 em 20 dias?
-NVDA está esticada ou sobrecomprada?
 Calcula volatilidade, Sharpe e drawdown de SPY.
-Faz uma regressão de AAPL contra SPY.
-Pesquise a decisão mais recente do BCE e explique o impacto provável sobre a Euribor.
+Regressão AAPL SPY.
+Mostre inflação, PIB, desemprego e Euribor em Portugal.
+Cruza SPY com inflação e Euribor nos últimos 10 anos.
+Regressão NVDA com Euribor e taxa do BCE.
+Use Eurostat para comparar desemprego e PIB.
+OECD desemprego de Portugal.
+FRED fed funds e desemprego dos EUA.
+Pesquise a decisão mais recente do BCE.
 ```
+
+## Tests
+
+The GitHub workflow runs two layers:
+
+- deterministic unit/parser/econometrics tests;
+- live smoke tests against the public ECB, Eurostat, INE and OECD APIs.
+
+FRED live smoke testing is enabled automatically when `FRED_API_KEY` is configured in the environment.
 
 ## Current scope
 
-This branch is a functional quantitative foundation, not a finished trading system. The next high-value additions are official macroeconomic data connectors (ECB, Eurostat, INE, FRED/OECD), stronger walk-forward/out-of-sample validation, transaction-cost-aware backtests, richer econometric diagnostics and a cleaner human-readable result renderer.
+The official macro connectors and market/macro econometrics are now part of this branch. High-value next steps are vintage/release-calendar support for true point-in-time backtests, richer cointegration/VAR/VECM diagnostics, transaction-cost-aware strategy evaluation and a cleaner human-readable result renderer.
