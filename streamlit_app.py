@@ -5,15 +5,15 @@ import mimetypes
 import streamlit as st
 
 from sei_agents import result_to_markdown
-from sei_router import SEIChatOrchestrator
+from sei_macro_runtime import SEIMacroOrchestrator
 
 
 st.set_page_config(page_title="SEI", page_icon="🧠", layout="wide")
 st.title("SEI — Inteligência Económica Quantitativa")
-st.caption("Um único chat; vários agentes especializados trabalham por trás da resposta.")
+st.caption("Um único chat; agentes de mercado, matemática, estatística, econometria e dados macro oficiais trabalham por trás da resposta.")
 
 if "orchestrator" not in st.session_state:
-    st.session_state.orchestrator = SEIChatOrchestrator()
+    st.session_state.orchestrator = SEIMacroOrchestrator()
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -29,12 +29,19 @@ with st.sidebar:
         "**Perguntas que o SEI já entende**\n\n"
         "- `Analisa NVDA em 10 pregões`\n"
         "- `Qual a chance de AAPL atingir 300 em 20 dias?`\n"
-        "- `A Nvidia está esticada ou sobrecomprada?`\n"
         "- `Volatilidade, Sharpe e drawdown de SPY`\n"
         "- `Regressão AAPL SPY`\n"
+        "- `Mostre inflação, PIB, desemprego e Euribor em Portugal`\n"
+        "- `Cruza SPY com inflação e Euribor nos últimos 10 anos`\n"
+        "- `Regressão NVDA com Euribor e taxa do BCE`\n"
+        "- `Use Eurostat para comparar desemprego e PIB`\n"
         "- `Pesquise a decisão mais recente do BCE`"
     )
     st.divider()
+    st.caption(
+        "Fontes macro: BCE/ECB, Eurostat, INE Portugal, FRED e OECD. "
+        "FRED requer FRED_API_KEY."
+    )
     st.caption(
         "Percentagens só são mostradas quando existe amostra quantitativa suficiente. "
         "Sinais são apoio analítico, não ordens de compra ou venda."
@@ -54,7 +61,7 @@ if prompt:
     mime_type = mimetypes.guess_type(uploaded.name)[0] if uploaded is not None else None
 
     with st.chat_message("assistant"):
-        with st.spinner("Os agentes estão analisando dados e metodologia..."):
+        with st.spinner("Os agentes estão buscando dados oficiais e executando a análise..."):
             results = st.session_state.orchestrator.chat(
                 prompt,
                 image_bytes=image_bytes,
