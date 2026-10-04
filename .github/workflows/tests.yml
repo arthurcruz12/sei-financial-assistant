@@ -34,7 +34,7 @@ jobs:
         run: >-
           python -m py_compile
           sei.py sei_agents.py sei_runtime.py sei_router.py
-          macro_data.py macro_analysis.py sei_macro_runtime.py streamlit_app.py
+          macro_data.py ine_current.py macro_analysis.py sei_macro_runtime.py streamlit_app.py
 
   official-api-smoke:
     runs-on: ubuntu-latest
