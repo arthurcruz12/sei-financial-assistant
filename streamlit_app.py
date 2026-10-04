@@ -5,7 +5,7 @@ import mimetypes
 import streamlit as st
 
 from sei_agents import result_to_markdown
-from sei_runtime import SEIOrchestratorPro
+from sei_router import SEIChatOrchestrator
 
 
 st.set_page_config(page_title="SEI", page_icon="🧠", layout="wide")
@@ -13,7 +13,7 @@ st.title("SEI — Inteligência Económica Quantitativa")
 st.caption("Um único chat; vários agentes especializados trabalham por trás da resposta.")
 
 if "orchestrator" not in st.session_state:
-    st.session_state.orchestrator = SEIOrchestratorPro()
+    st.session_state.orchestrator = SEIChatOrchestrator()
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -29,7 +29,7 @@ with st.sidebar:
         "**Perguntas que o SEI já entende**\n\n"
         "- `Analisa NVDA em 10 pregões`\n"
         "- `Qual a chance de AAPL atingir 300 em 20 dias?`\n"
-        "- `Está esticada ou sobrecomprada? NVDA`\n"
+        "- `A Nvidia está esticada ou sobrecomprada?`\n"
         "- `Volatilidade, Sharpe e drawdown de SPY`\n"
         "- `Regressão AAPL SPY`\n"
         "- `Pesquise a decisão mais recente do BCE`"
