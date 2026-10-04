@@ -42,19 +42,9 @@ The SEI can now receive a question such as:
 Cruza SPY com inflação e Euribor nos últimos 10 anos.
 ```
 
-The engine:
+The engine retrieves market and official macro data, converts market prices to period returns, aligns series to the coarsest relevant frequency, estimates OLS with HC3 robust standard errors, returns coefficients/p-values/R²/correlations, runs ADF, and can run Granger predictive-precedence tests for suitable two-series cases.
 
-1. retrieves SPY market prices;
-2. retrieves inflation from INE and Euribor from the ECB;
-3. converts the market to period returns;
-4. aligns all series to the coarsest macro frequency;
-5. removes dates without common observations;
-6. estimates OLS with HC3 robust standard errors;
-7. returns coefficients, p-values, R², adjusted R² and the correlation matrix;
-8. runs ADF tests and, for suitable two-series cases, Granger predictive-precedence tests;
-9. returns the original source URLs and methodology notes.
-
-A macro/market regression is **not automatically a causal model**. Also, ordinary reference-period data do not preserve the exact historical publication timestamp or vintage. The SEI therefore warns that such results must not be interpreted as a look-ahead-free trading backtest unless vintage/release-date handling is added.
+A macro/market regression is **not automatically a causal model**. Ordinary reference-period data also do not preserve the exact historical publication timestamp or vintage. The SEI therefore warns that these results must not be interpreted as a look-ahead-free trading backtest unless vintage/release-date handling is added.
 
 ## Probability policy
 
@@ -110,12 +100,9 @@ Pesquise a decisão mais recente do BCE.
 
 ## Tests
 
-The GitHub workflow runs two layers:
+The GitHub workflow runs deterministic unit/parser/econometrics tests plus live smoke tests against the public ECB, Eurostat, INE and OECD APIs. An INE connection timeout from a CI runner is treated as an external availability skip, while malformed responses still fail. FRED smoke testing runs when `FRED_API_KEY` is configured.
 
-- deterministic unit/parser/econometrics tests;
-- live smoke tests against the public ECB, Eurostat, INE and OECD APIs.
-
-An INE network timeout from a CI runner is treated as an external availability skip, while malformed responses still fail the test. FRED live smoke testing is enabled automatically when `FRED_API_KEY` is configured in the environment.
+The live smoke suite has already verified direct ECB and OECD connectivity. Eurostat's 2026 HICP migration was detected by the smoke test and the chat connector was updated to `prc_hicp_minr`; subsequent workflow runs validate that current structure.
 
 ## Current scope
 
