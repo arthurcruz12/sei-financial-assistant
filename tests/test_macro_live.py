@@ -24,11 +24,12 @@ class OfficialAPISmokeTests(unittest.TestCase):
 
     def test_ine_inflation(self):
         try:
-            series = OfficialMacroHub().ine.preset("pt_inflation_ine")
+            series = SEIOfficialMacroHub().get("pt_inflation_ine")
         except (requests.Timeout, requests.ConnectionError) as exc:
             self.skipTest(f"INE endpoint unavailable from CI runner: {exc}")
         self.assertGreater(len(series.data), 0)
         self.assertEqual(series.source, "INE Portugal")
+        self.assertEqual(series.frequency, "M")
 
     def test_oecd_portugal_unemployment(self):
         series = SEIOfficialMacroHub().get("pt_unemployment_oecd", start="2024-Q1", end="2024-Q2")
