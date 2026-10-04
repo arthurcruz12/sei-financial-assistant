@@ -6,7 +6,7 @@ from typing import List, Optional
 from macro_analysis import MacroDataAgent, MacroEconometricsAgent
 from macro_data import OfficialMacroHub
 from sei_agents import AgentResult, RouterAgent
-from sei_runtime import SEIOrchestratorPro
+from sei_router import SEIChatOrchestrator
 
 
 MACRO_STOP_TICKERS = {
@@ -48,7 +48,6 @@ class MacroIntentParser:
         provider = self._provider(message)
         aliases: List[str] = []
 
-        # Euribor and ECB policy rates.
         if "euribor" in lower:
             if re.search(r"(?:12\s*(?:m|mes)|1\s*(?:ano|year))", lower):
                 self._append_unique(aliases, "euribor12m")
@@ -56,10 +55,12 @@ class MacroIntentParser:
                 self._append_unique(aliases, "euribor6m")
             else:
                 self._append_unique(aliases, "euribor3m")
-        if any(term in lower for term in ["taxa do bce", "taxa bce", "juros bce", "ecb rate", "deposit facility", "taxa de depósito", "taxa de deposito"]):
+        if any(term in lower for term in [
+            "taxa do bce", "taxa bce", "juros bce", "ecb rate", "deposit facility",
+            "taxa de depósito", "taxa de deposito",
+        ]):
             self._append_unique(aliases, "ecb_deposit_rate")
 
-        # Portugal macro defaults to INE; Eurostat can be explicitly requested.
         if any(term in lower for term in ["inflação", "inflacao", "ipc", "hicp", "consumer prices"]):
             if provider == "eurostat" or "harmoniz" in lower or "hicp" in lower:
                 self._append_unique(aliases, "pt_inflation_eurostat")
@@ -76,7 +77,6 @@ class MacroIntentParser:
             elif provider in {None, "ine"}:
                 self._append_unique(aliases, "pt_gdp_yoy_ine")
 
-        # FRED common US series.
         if provider == "fred" or any(term in lower for term in ["fed funds", "federal funds"]):
             if any(term in lower for term in ["fed funds", "federal funds", "taxa fed"]):
                 self._append_unique(aliases, "fed_funds")
@@ -104,8 +104,8 @@ class MacroIntentParser:
         return "10y"
 
 
-class SEIMacroOrchestrator(SEIOrchestratorPro):
-    """SEI composition with official ECB/Eurostat/INE/FRED/OECD macro data."""
+class SEIMacroOrchestrator(SEIChatOrchestrator):
+    """Single SEI chat with market agents plus official macro data/econometrics."""
 
     def __init__(self) -> None:
         super().__init__()
@@ -129,22 +129,21 @@ class SEIMacroOrchestrator(SEIOrchestratorPro):
         results: List[AgentResult] = []
         symbols = self._market_symbols(message)
 
-        # If a chart screenshot is supplied, use vision only to recover visible context/ticker.
         if image_bytes:
             vision = self.llm.inspect_chart_image(image_bytes, mime_type or "image/png", message)
             results.append(vision)
             if not symbols:
-                visual_symbols = self._market_symbols(vision.summary)
-                symbols = visual_symbols[:1]
+                symbols = self._market_symbols(vision.summary)[:1]
 
         try:
             if symbols and self.macro_parser.wants_cross_analysis(message):
-                result = self.macro_econometrics.market_vs_macro(
-                    symbols[0],
-                    aliases,
-                    period=self.macro_parser.period(message),
+                results.append(
+                    self.macro_econometrics.market_vs_macro(
+                        symbols[0],
+                        aliases,
+                        period=self.macro_parser.period(message),
+                    )
                 )
-                results.append(result)
                 return results
 
             if len(aliases) >= 2 and self.macro_parser.wants_cross_analysis(message):
