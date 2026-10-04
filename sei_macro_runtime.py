@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from typing import List, Optional
 
+from ine_current import CurrentINEConnector
 from macro_analysis import MacroDataAgent, MacroEconometricsAgent
 from macro_data import OfficialMacroHub, OfficialSeries
 from sei_agents import AgentResult, RouterAgent
@@ -25,6 +26,10 @@ OECD_PT_UNEMPLOYMENT_KEY = "PRT..._Z.Y._T.Y_GE15..Q"
 
 class SEIOfficialMacroHub(OfficialMacroHub):
     """Current chat presets layered over the generic official connectors."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.ine = CurrentINEConnector()
 
     def get(self, alias: str, *, start: Optional[str] = None, end: Optional[str] = None) -> OfficialSeries:
         if alias == "pt_inflation_eurostat":
