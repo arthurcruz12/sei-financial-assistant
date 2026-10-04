@@ -76,6 +76,9 @@ class MacroIntentTests(unittest.TestCase):
         aliases = self.parser.aliases("Use Eurostat para comparar desemprego e PIB")
         self.assertEqual(aliases, ["pt_unemployment_eurostat", "pt_gdp_qoq_eurostat"])
 
+    def test_explicit_oecd(self):
+        self.assertEqual(self.parser.aliases("OECD desemprego de Portugal"), ["pt_unemployment_oecd"])
+
     def test_euribor_tenor(self):
         self.assertEqual(self.parser.aliases("Euribor 12 meses"), ["euribor12m"])
         self.assertEqual(self.parser.aliases("Euribor 6 meses"), ["euribor6m"])
@@ -88,7 +91,6 @@ class FakeMarket:
         macro = np.linspace(0, 5, len(idx))
         returns = 0.002 + 0.0004 * macro + rng.normal(0, 0.01, len(idx))
         close = 100 * np.cumprod(1 + returns)
-        # Market agent expects OHLCV fields, but macro econometrics only uses Close.
         return pd.DataFrame({"Close": close}, index=idx)
 
 
