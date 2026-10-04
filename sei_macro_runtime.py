@@ -4,7 +4,7 @@ import re
 from typing import List, Optional
 
 from macro_analysis import MacroDataAgent, MacroEconometricsAgent
-from macro_data import OfficialMacroHub
+from macro_data import OfficialMacroHub, OfficialSeries
 from sei_agents import AgentResult, RouterAgent
 from sei_router import SEIChatOrchestrator
 
@@ -18,6 +18,24 @@ CROSS_TERMS = (
     "regress", "econometr", "correla", "relação", "relacao", "impacto", "explica",
     "cruza", "cruzar", "compara", "comparar", "granger", "efeito", "sensibilidade",
 )
+
+OECD_PT_UNEMPLOYMENT_FLOW = "OECD.SDD.TPS,DSD_LFS@DF_IALFS_UNE_M,1.0"
+OECD_PT_UNEMPLOYMENT_KEY = "PRT..._Z.Y._T.Y_GE15..Q"
+
+
+class SEIOfficialMacroHub(OfficialMacroHub):
+    """Adds chat-friendly OECD presets while preserving generic OECD SDMX access."""
+
+    def get(self, alias: str, *, start: Optional[str] = None, end: Optional[str] = None) -> OfficialSeries:
+        if alias == "pt_unemployment_oecd":
+            return self.oecd.fetch(
+                OECD_PT_UNEMPLOYMENT_FLOW,
+                OECD_PT_UNEMPLOYMENT_KEY,
+                name="Taxa de desemprego Portugal, 15+ anos, trimestral (OECD)",
+                start=start,
+                end=end,
+            )
+        return super().get(alias, start=start, end=end)
 
 
 class MacroIntentParser:
@@ -69,6 +87,8 @@ class MacroIntentParser:
         if any(term in lower for term in ["desemprego", "unemployment"]):
             if provider == "eurostat":
                 self._append_unique(aliases, "pt_unemployment_eurostat")
+            elif provider == "oecd":
+                self._append_unique(aliases, "pt_unemployment_oecd")
             elif provider in {None, "ine"}:
                 self._append_unique(aliases, "pt_unemployment_ine")
         if any(term in lower for term in ["pib", "gdp", "produto interno bruto"]):
@@ -109,7 +129,7 @@ class SEIMacroOrchestrator(SEIChatOrchestrator):
 
     def __init__(self) -> None:
         super().__init__()
-        self.macro_hub = OfficialMacroHub()
+        self.macro_hub = SEIOfficialMacroHub()
         self.macro_data = MacroDataAgent(self.macro_hub)
         self.macro_econometrics = MacroEconometricsAgent(self.market, self.macro_hub)
         self.macro_parser = MacroIntentParser()
