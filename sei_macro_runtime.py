@@ -36,7 +36,7 @@ class SEIOfficialMacroHub(OfficialMacroHub):
                     "geo": "PT",
                     "freq": "M",
                     "unit": "RCH_A",
-                    "coicop18": "CP00",
+                    "coicop18": "TOTAL",
                 },
                 name="Inflação HICP Portugal - variação homóloga",
                 start=start,
