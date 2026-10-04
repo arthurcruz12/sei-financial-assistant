@@ -1,6 +1,8 @@
 import os
 import unittest
 
+import requests
+
 from macro_data import OfficialMacroHub
 from sei_macro_runtime import SEIOfficialMacroHub
 
@@ -16,12 +18,15 @@ class OfficialAPISmokeTests(unittest.TestCase):
         self.assertEqual(series.source, "ECB")
 
     def test_eurostat_inflation(self):
-        series = OfficialMacroHub().eurostat.preset("pt_inflation_eurostat", start="2025-01", end="2025-03")
+        series = SEIOfficialMacroHub().get("pt_inflation_eurostat", start="2025-01", end="2025-03")
         self.assertGreater(len(series.data), 0)
         self.assertEqual(series.source, "Eurostat")
 
     def test_ine_inflation(self):
-        series = OfficialMacroHub().ine.preset("pt_inflation_ine")
+        try:
+            series = OfficialMacroHub().ine.preset("pt_inflation_ine")
+        except (requests.Timeout, requests.ConnectionError) as exc:
+            self.skipTest(f"INE endpoint unavailable from CI runner: {exc}")
         self.assertGreater(len(series.data), 0)
         self.assertEqual(series.source, "INE Portugal")
 
