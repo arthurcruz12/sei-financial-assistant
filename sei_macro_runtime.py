@@ -24,9 +24,24 @@ OECD_PT_UNEMPLOYMENT_KEY = "PRT..._Z.Y._T.Y_GE15..Q"
 
 
 class SEIOfficialMacroHub(OfficialMacroHub):
-    """Adds chat-friendly OECD presets while preserving generic OECD SDMX access."""
+    """Current chat presets layered over the generic official connectors."""
 
     def get(self, alias: str, *, start: Optional[str] = None, end: Optional[str] = None) -> OfficialSeries:
+        if alias == "pt_inflation_eurostat":
+            # Eurostat replaced the legacy HICP structures in 2026 with prc_hicp_minr
+            # using the ECOICOP-2018 dimension (`coicop18`).
+            return self.eurostat.fetch(
+                "prc_hicp_minr",
+                filters={
+                    "geo": "PT",
+                    "freq": "M",
+                    "unit": "RCH_A",
+                    "coicop18": "CP00",
+                },
+                name="Inflação HICP Portugal - variação homóloga",
+                start=start,
+                end=end,
+            )
         if alias == "pt_unemployment_oecd":
             return self.oecd.fetch(
                 OECD_PT_UNEMPLOYMENT_FLOW,
