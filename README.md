@@ -102,7 +102,7 @@ Pesquise a decisão mais recente do BCE.
 
 The GitHub workflow runs deterministic unit/parser/econometrics tests plus live smoke tests against the public ECB, Eurostat, INE and OECD APIs. FRED smoke testing runs when `FRED_API_KEY` is configured.
 
-The connector suite is validated by both deterministic unit/compile checks and public-API smoke checks. The 2026 Eurostat HICP migration and the current INE human-readable period format were both detected and corrected through these live checks.
+The current connector suite has passed both jobs: deterministic tests/compilation and live public-API smoke checks for ECB, Eurostat, INE and OECD. The 2026 Eurostat HICP migration and the current INE human-readable period format were both detected and corrected through these live checks.
 
 ## Current scope
 
