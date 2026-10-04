@@ -35,6 +35,8 @@ with st.sidebar:
         "- `Cruza SPY com inflação e Euribor nos últimos 10 anos`\n"
         "- `Regressão NVDA com Euribor e taxa do BCE`\n"
         "- `Use Eurostat para comparar desemprego e PIB`\n"
+        "- `OECD desemprego de Portugal`\n"
+        "- `FRED fed funds e desemprego dos EUA`\n"
         "- `Pesquise a decisão mais recente do BCE`"
     )
     st.divider()
