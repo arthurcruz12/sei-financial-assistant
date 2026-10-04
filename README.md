@@ -102,7 +102,7 @@ Pesquise a decisão mais recente do BCE.
 
 The GitHub workflow runs deterministic unit/parser/econometrics tests plus live smoke tests against the public ECB, Eurostat, INE and OECD APIs. An INE connection timeout from a CI runner is treated as an external availability skip, while malformed responses still fail. FRED smoke testing runs when `FRED_API_KEY` is configured.
 
-The live smoke suite has verified direct ECB and OECD connectivity. Eurostat's 2026 HICP migration was detected by the smoke test and the chat connector was updated to `prc_hicp_minr` with the current ECOICOP-2018 total category.
+The live smoke suite is used to catch upstream schema/API changes before merge; the 2026 Eurostat HICP migration was caught this way and the connector was updated to the current `prc_hicp_minr`/ECOICOP-2018 structure.
 
 ## Current scope
 
