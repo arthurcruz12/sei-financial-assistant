@@ -24,11 +24,11 @@ The user talks to one SEI chat. Internally, specialist agents handle the work:
 
 ## Official macroeconomic data
 
-`macro_data.py` provides direct connectors without webpage scraping:
+The official-data layer provides direct connectors without webpage scraping:
 
 - **ECB Data Portal API (SDMX)** — Euribor 3M/6M/12M and the ECB deposit facility rate presets, plus generic ECB flow/key access.
 - **Eurostat Statistics API (JSON-stat)** — the chat uses the current `prc_hicp_minr` HICP structure for Portugal inflation (`coicop18=TOTAL`), plus unemployment/GDP datasets and generic dataset/filter access.
-- **INE Portugal JSON indicator API** — Portugal CPI inflation, real-GDP growth and unemployment presets, plus generic indicator/dimension access.
+- **INE Portugal JSON indicator API** — Portugal CPI inflation, real-GDP growth and unemployment presets. `ine_current.py` handles the current human-readable INE periods such as `Agosto de 2026` and `2.º Trimestre de 2026` and Portuguese decimal commas.
 - **FRED API** — CPI, unemployment, real GDP and Fed Funds presets. `FRED_API_KEY` is required by FRED.
 - **OECD Data Explorer SDMX API** — generic flow/key access and a Portugal unemployment preset used by the chat.
 
@@ -100,9 +100,9 @@ Pesquise a decisão mais recente do BCE.
 
 ## Tests
 
-The GitHub workflow runs deterministic unit/parser/econometrics tests plus live smoke tests against the public ECB, Eurostat, INE and OECD APIs. An INE connection timeout from a CI runner is treated as an external availability skip, while malformed responses still fail. FRED smoke testing runs when `FRED_API_KEY` is configured.
+The GitHub workflow runs deterministic unit/parser/econometrics tests plus live smoke tests against the public ECB, Eurostat, INE and OECD APIs. FRED smoke testing runs when `FRED_API_KEY` is configured.
 
-The live smoke suite is used to catch upstream schema/API changes before merge; the 2026 Eurostat HICP migration was caught this way and the connector was updated to the current `prc_hicp_minr`/ECOICOP-2018 structure.
+The current connector suite has passed both the deterministic unit/compile job and the live public-API smoke job for ECB, Eurostat, INE and OECD. The 2026 Eurostat HICP migration and the current INE human-readable period format were both detected and corrected through these live checks.
 
 ## Current scope
 
