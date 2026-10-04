@@ -4,7 +4,6 @@ import io
 import os
 import re
 from dataclasses import dataclass, field
-from itertools import product
 from typing import Any, Dict, Iterable, Optional
 
 import pandas as pd
@@ -48,12 +47,22 @@ def _request(url: str, *, params: Optional[Dict[str, Any]] = None, headers: Opti
     return response
 
 
+def _strip_ine_prefix(text: str) -> str:
+    return re.sub(r"^S\d+A", "", text.strip(), flags=re.IGNORECASE)
+
+
 def _period_to_timestamp(value: Any) -> pd.Timestamp:
-    text = str(value).strip()
-    if re.fullmatch(r"\d{4}-Q[1-4]", text):
-        return pd.Period(text, freq="Q").end_time.normalize()
-    if re.fullmatch(r"\d{4}-M\d{2}", text):
-        year, month = text.split("-M")
+    text = _strip_ine_prefix(str(value).strip())
+    if re.fullmatch(r"\d{6}", text):
+        return pd.Period(f"{text[:4]}-{text[4:]}", freq="M").end_time.normalize()
+    if re.fullmatch(r"\d{4}[- ]?[TQ][1-4]", text, flags=re.IGNORECASE):
+        match = re.match(r"(\d{4})[- ]?[TQ]([1-4])", text, flags=re.IGNORECASE)
+        assert match is not None
+        return pd.Period(f"{match.group(1)}Q{match.group(2)}", freq="Q").end_time.normalize()
+    if re.fullmatch(r"\d{4}-Q[1-4]", text, flags=re.IGNORECASE):
+        return pd.Period(text.upper(), freq="Q").end_time.normalize()
+    if re.fullmatch(r"\d{4}-M\d{2}", text, flags=re.IGNORECASE):
+        year, month = text.upper().split("-M")
         return pd.Period(f"{year}-{month}", freq="M").end_time.normalize()
     if re.fullmatch(r"\d{4}-\d{2}", text):
         return pd.Period(text, freq="M").end_time.normalize()
@@ -63,13 +72,17 @@ def _period_to_timestamp(value: Any) -> pd.Timestamp:
 
 
 def _infer_frequency(values: Iterable[Any]) -> str:
-    values = [str(v) for v in values]
+    values = [_strip_ine_prefix(str(v)) for v in values]
     if not values:
         return "unknown"
     sample = values[0]
-    if "Q" in sample:
+    if re.fullmatch(r"\d{6}", sample):
+        return "M"
+    if re.fullmatch(r"\d{4}[- ]?[TQ][1-4]", sample, flags=re.IGNORECASE):
         return "Q"
-    if re.fullmatch(r"\d{4}-(?:M)?\d{2}", sample):
+    if "Q" in sample.upper():
+        return "Q"
+    if re.fullmatch(r"\d{4}-(?:M)?\d{2}", sample, flags=re.IGNORECASE):
         return "M"
     if re.fullmatch(r"\d{4}", sample):
         return "A"
@@ -167,9 +180,15 @@ class EurostatConnector:
         if not dims or not sizes:
             raise ValueError("Resposta Eurostat sem estrutura JSON-stat esperada.")
         codes_by_dim = [cls._dimension_codes(payload, dim) for dim in dims]
-        values = payload.get("value", {})
+        raw_values = payload.get("value", {})
+        if isinstance(raw_values, list):
+            value_items = [(i, v) for i, v in enumerate(raw_values) if v is not None]
+        elif isinstance(raw_values, dict):
+            value_items = raw_values.items()
+        else:
+            value_items = []
         rows = []
-        for linear_key, raw_value in values.items():
+        for linear_key, raw_value in value_items:
             linear = int(linear_key)
             coords = []
             remainder = linear
@@ -284,7 +303,7 @@ class INEConnector:
                 f"INE devolveu múltiplas combinações para {indicator}. "
                 "Use Dim1/Dim2/... para selecionar uma única série."
             )
-        idx = pd.Index([_period_to_timestamp(v.replace("S3A", "") if str(v).startswith("S3A") else v) for v in frame["period"]])
+        idx = pd.Index([_period_to_timestamp(v) for v in frame["period"]])
         series = pd.Series(pd.to_numeric(frame["valor"], errors="coerce").to_numpy(), index=idx)
         title = name or root.get("IndicadorDsg") or f"INE {indicator}"
         frequency = _infer_frequency(frame["period"])
