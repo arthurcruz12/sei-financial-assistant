@@ -431,10 +431,13 @@ class OfficialMacroHub:
         self.ine = INEConnector()
         self.fred = FREDConnector()
         self.oecd = OECDConnector()
+        from bcb_data import BCBConnector
+        self.bcb = BCBConnector()
 
     @property
     def aliases(self) -> set[str]:
-        return set(ECBConnector.PRESETS) | set(EurostatConnector.PRESETS) | set(INEConnector.PRESETS) | set(FREDConnector.PRESETS)
+        from bcb_data import BCBConnector
+        return set(ECBConnector.PRESETS) | set(EurostatConnector.PRESETS) | set(INEConnector.PRESETS) | set(FREDConnector.PRESETS) | set(BCBConnector.PRESETS)
 
     def get(self, alias: str, *, start: Optional[str] = None, end: Optional[str] = None) -> OfficialSeries:
         if alias in ECBConnector.PRESETS:
@@ -445,4 +448,6 @@ class OfficialMacroHub:
             return self.ine.preset(alias)
         if alias in FREDConnector.PRESETS:
             return self.fred.preset(alias, start=start, end=end)
+        if alias in self.bcb.PRESETS:
+            return self.bcb.preset(alias, start=start, end=end)
         raise KeyError(f"Série macro não registada: {alias}")
