@@ -5,6 +5,7 @@ import mimetypes
 import streamlit as st
 
 from sei_agents import result_to_markdown
+from sei_dashboard import render_macro_dashboard
 from sei_macro_runtime import SEIMacroOrchestrator
 
 
@@ -52,6 +53,9 @@ with st.sidebar:
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
+
+with st.expander("Painel quantitativo de dados oficiais", expanded=False):
+    render_macro_dashboard()
 
 prompt = st.chat_input("Pergunte ao SEI...")
 if prompt:
