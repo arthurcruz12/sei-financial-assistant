@@ -62,7 +62,7 @@ def home():
     with left:
         with st.container(border=True):
             st.markdown('<div class="sei-eyebrow">EVOLUÇÃO OBSERVADA</div>',unsafe_allow_html=True)
-            st.markdown('<div class="sei-title">Euro / Dólar</div>',unsafe_allow_html=True)
+            st.markdown('<div class="sei-title">Indicadores económicos</div>',unsafe_allow_html=True)
             alias=st.selectbox("Série a visualizar",["euribor3m","pt_inflation_ine","br_ipca","br_usd_brl","br_selic_target"],
                 format_func=lambda a: next((k for k,v in DISPLAY_SERIES.items() if v==a),a),
                 label_visibility="collapsed")
