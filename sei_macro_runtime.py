@@ -86,6 +86,13 @@ class MacroIntentParser:
         provider = self._provider(message)
         aliases: List[str] = []
 
+        if any(t in lower for t in ["selic", "taxa selic"]):
+            self._append_unique(aliases, "br_selic_target")
+        if "ipca" in lower:
+            self._append_unique(aliases, "br_ipca")
+        if any(t in lower for t in ["usd/brl", "dólar comercial", "dolar comercial"]):
+            self._append_unique(aliases, "br_usd_brl")
+
         if "euribor" in lower:
             if re.search(r"(?:12\s*(?:m|mes)|1\s*(?:ano|year))", lower):
                 self._append_unique(aliases, "euribor12m")
@@ -162,6 +169,18 @@ class SEIMacroOrchestrator(SEIChatOrchestrator):
         return [s for s in symbols if s not in MACRO_STOP_TICKERS]
 
     def chat(self, message: str, image_bytes: Optional[bytes] = None, mime_type: Optional[str] = None) -> List[AgentResult]:
+        normalized = message.strip().lower()
+        if normalized in {"oi", "olá", "ola", "bom dia", "boa tarde", "boa noite", "ajuda", "help", "o que podes fazer?", "o que você faz?"}:
+            return [AgentResult(
+                agent="assistant",
+                summary=(
+                    "Olá! Sou a SEI. Posso consultar Selic, IPCA, dólar e Euribor em fontes oficiais; "
+                    "calcular estatísticas de AAPL, SPY ou PETR4; e estimar regressões. "
+                    "Exemplos: **'Mostra o IPCA'**, **'Volatilidade de SPY'**, "
+                    "**'Regressão AAPL SPY'** ou **'Cruza SPY com Euribor'**. "
+                    "Perguntas gerais e notícias pesquisadas exigem a chave de IA configurada."
+                ),
+            )]
         aliases = self.macro_parser.aliases(message)
         if not aliases:
             return super().chat(message, image_bytes=image_bytes, mime_type=mime_type)
