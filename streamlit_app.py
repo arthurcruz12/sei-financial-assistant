@@ -58,6 +58,39 @@ p, label {color:#3b6273;}
 .sei-brand {font-size:29px;font-weight:800;letter-spacing:-1px;color:#0a3544;}
 .sei-foot {font-size:12px;color:#78919c;padding-top:18px;border-top:1px solid #dce7e9;}
 @media (max-width:850px) {.block-container{padding:1.25rem .75rem!important}.sei-title{font-size:20px}}
+
+/* Reference fidelity: light side navigation and equal-height white cards */
+header[data-testid="stHeader"] {background:transparent!important;}
+[data-testid="stSidebar"] {min-width:265px!important;max-width:265px!important;}
+[data-testid="stSidebar"] .stButton>button[kind="secondary"],
+[data-testid="stSidebar"] .stButton>button[kind="primary"] {
+ background:transparent!important;border:0!important;color:#395e70!important;
+ min-height:37px!important;box-shadow:none!important;margin:0!important;
+ padding:7px 13px!important;justify-content:flex-start!important;font-weight:500!important;}
+[data-testid="stSidebar"] .stButton>button[kind="primary"] {
+ background:#dcefee!important;color:#007d80!important;font-weight:700!important;}
+[data-testid="stSidebar"] .stButton>button[kind="secondary"]:hover {background:#e0eeee!important;color:#007b80!important;}
+[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {gap:.23rem!important;}
+[data-testid="stSidebar"] hr {border-color:#dce7e9!important;margin:9px 0!important;}
+.sei-logo {display:inline-flex;align-items:center;justify-content:center;color:#008985;
+ font-weight:650;background:#dcefee;border-radius:13px;width:46px;height:46px;margin-right:7px;}
+.sei-brand {display:flex;align-items:center;}
+.sei-sidebar-foot {color:#3e6b7a;font-size:12px;line-height:1.8;border-top:1px solid #d5e4e7;padding-top:15px;}
+.sei-sidebar-foot small {font-size:10px;color:#648596;}
+.block-container {padding-top:1.3rem!important; max-width:1120px!important;}
+[data-testid="stVerticalBlockBorderWrapper"]:has(.sei-eyebrow){
+ box-shadow:0 1px 3px rgba(19,54,72,.04)!important;
+ padding:18px 22px!important;
+}
+[data-testid="stVerticalBlockBorderWrapper"]:has(.sei-eyebrow) [data-testid="stVerticalBlock"] {gap:.6rem;}
+[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stLineChart"] {background:#fff!important;}
+[data-testid="stSegmentedControl"] button {border-radius:6px!important;}
+.sei-stat {display:flex;justify-content:space-between;gap:16px;font-size:13px;color:#658391;
+ margin-top:13px;padding:5px 0;}
+.sei-stat b {color:#008985;}
+.sei-title {font-size:22px;line-height:1.35;}
+[data-testid="stDownloadButton"] button {border:0!important;background:transparent!important;color:#008985!important;}
+@media(min-width:1280px){.block-container {margin-left:auto!important;margin-right:auto!important;}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -69,7 +102,7 @@ if "messages" not in st.session_state: st.session_state.messages = []
 if "orchestrator" not in st.session_state: st.session_state.orchestrator = SEIMacroOrchestrator()
 
 with st.sidebar:
-    st.markdown('<div class="sei-brand">〽 SEI</div><div class="sei-eyebrow">ECONOMIC INTELLIGENCE</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sei-brand"><span class="sei-logo">∿</span> SEI</div><div class="sei-eyebrow" style="padding-left:56px">ECONOMIC INTELLIGENCE</div>', unsafe_allow_html=True)
     st.markdown("<div style=\"height:25px\"></div>", unsafe_allow_html=True)
     st.markdown('<div class="sei-eyebrow">O SEU ESPAÇO DE ANÁLISE</div>',unsafe_allow_html=True)
     for i,page in enumerate(PAGES):
@@ -79,16 +112,16 @@ with st.sidebar:
             st.session_state.page=page
             st.rerun()
     st.divider()
-    st.caption("♢ Inteligência com transparência\n\nFontes identificadas. Limites claros.")
+    st.markdown('<div class="sei-sidebar-foot">♢ &nbsp; Inteligência com transparência<br><small>Fontes identificadas. Limites claros.</small></div>', unsafe_allow_html=True)
 
 def home():
-    left,right=st.columns([1.8,1],gap="medium")
+    left,right=st.columns([1.62,1],gap="medium")
     start=(date.today()-timedelta(days=365*3)).isoformat()
     end=date.today().isoformat()
     with left:
-        with st.container(border=True):
+        with st.container(border=True, height=530):
             st.markdown('<div class="sei-eyebrow">EVOLUÇÃO OBSERVADA</div>',unsafe_allow_html=True)
-            st.markdown('<div class="sei-title">Indicadores económicos</div>',unsafe_allow_html=True)
+            st.markdown('<div class="sei-title">Evolução dos indicadores</div>',unsafe_allow_html=True)
             alias=st.selectbox("Série a visualizar",["euribor3m","pt_inflation_ine","br_ipca","br_usd_brl","br_selic_target"],
                 format_func=lambda a: next((k for k,v in DISPLAY_SERIES.items() if v==a),a),
                 label_visibility="collapsed")
@@ -97,7 +130,7 @@ def home():
                 payload=load_series(alias,start,end)
                 df=payload["data"].dropna(subset=["value"]).sort_values("date").tail(n or 90)
                 if len(df):
-                    st.line_chart(df.set_index("date")["value"],height=260)
+                    st.line_chart(df.set_index("date")["value"],height=245,color="#008D91")
                     st.caption(f"Última observação: {df.iloc[-1]['date'].date()} · {float(df.iloc[-1]['value']):.4f} {payload['unit']}")
                     st.markdown(f"**Fonte:** [{payload['source']}]({payload['source_url']}) · Série {payload['series_id']}")
                     st.download_button("↓ Exportar série (CSV)",df.to_csv(index=False).encode("utf-8"),"sei_serie.csv","text/csv")
@@ -111,11 +144,12 @@ def home():
             st.markdown('<div class="sei-eyebrow">♢ QUALIDADE DA INFORMAÇÃO</div>',unsafe_allow_html=True)
             st.markdown('<div class="sei-title">Uma decisão começa na qualidade da fonte.</div>',unsafe_allow_html=True)
             st.markdown('<p class="sei-body">Cada indicador preserva a origem, a série e a data de referência. Ausência de dados nunca é substituída por valores inventados.</p>',unsafe_allow_html=True)
+            st.markdown('<div class="sei-stat"><span>Séries disponíveis no painel</span><b>5</b></div><div class="sei-stat"><span>Fonte identificada</span><b>✓</b></div>',unsafe_allow_html=True)
             st.write("")
             if st.button("Explorar fontes ↗",use_container_width=True,type="primary"):
                 st.session_state.page="Fontes e metodologia"
                 st.rerun()
-    lowleft,lowright=st.columns([1.8,1],gap="medium")
+    lowleft,lowright=st.columns([1.62,1],gap="medium")
     with lowleft:
         with st.container(border=True):
             st.subheader("Na origem da informação")
@@ -128,7 +162,7 @@ def home():
                 ("01 · Defina o seu contexto","Perfil, horizonte e orçamento.","O meu perfil"),
                 ("02 · Explore outros cenários","Torne os pressupostos explícitos.","Cenários"),
                 ("03 · Simule uma carteira","Compare distribuições de capital.","Portfolio Builder")]:
-                if st.button(title,use_container_width=True,key=page):
+                if st.button(title + "  ›",use_container_width=True,key=page):
                     st.session_state.page=page
                     st.rerun()
                 st.caption(detail)
