@@ -615,9 +615,65 @@ class SEIOrchestrator:
 
 
 def result_to_markdown(result: AgentResult) -> str:
-    parts = [f"### {result.agent.replace('_', ' ').title()}", result.summary]
+    """Display quantitative results as Portuguese prose, not raw JSON."""
+    labels = {
+        "observations": "Observações", "latest": "Última observação",
+        "r_squared": "R²", "adjusted_r_squared": "R² ajustado",
+        "coefficients": "Coeficientes", "p_value": "Valor-p",
+        "coef": "Estimativa", "std_error_hc3": "Erro-padrão HC3",
+        "annualized_volatility_percent": "Volatilidade anual (%)",
+        "annualized_return_percent": "Retorno anual (%)",
+        "max_drawdown_percent": "Drawdown máximo (%)",
+        "sample_start": "Início da amostra", "sample_end": "Fim da amostra",
+        "aligned_frequency": "Frequência", "source": "Fonte",
+        "unit": "Unidade", "name": "Indicador",
+    }
+    titles = {
+        "official_macro_data": "Indicadores económicos oficiais",
+        "macro_econometrics": "Análise econométrica",
+        "econometrics": "Regressão econométrica",
+        "statistics": "Estatísticas financeiras",
+        "technical_analysis": "Análise técnica",
+        "research": "Pesquisa",
+        "assistant": "Assistente SEI",
+    }
+    def fmt(value):
+        if value is None:
+            return "Indisponível"
+        if isinstance(value, float):
+            return f"{value:.4f}".replace(".", ",")
+        return str(value)
+
+    def lines(data, depth=0):
+        output = []
+        for key, value in data.items():
+            if key in {"source_url", "source_series"} or value is None:
+                continue
+            label = labels.get(key, key.replace("_", " ").capitalize())
+            if isinstance(value, dict):
+                if key == "latest":
+                    output.append(f"- **{label}:** {fmt(value.get('value'))} (data: {fmt(value.get('date'))})")
+                elif depth < 2:
+                    output.append(f"**{label}**")
+                    output.extend(lines(value, depth + 1))
+            elif isinstance(value, list):
+                if len(value) <= 6 and all(not isinstance(v, (dict, list)) for v in value):
+                    output.append(f"- **{label}:** {', '.join(map(fmt, value))}")
+            else:
+                output.append(f"- **{label}:** {fmt(value)}")
+        return output[:80]
+
+    parts = [f"### {titles.get(result.agent, result.agent.replace('_', ' ').title())}", result.summary]
     if result.data:
-        parts.append("```json\n" + json.dumps(result.data, ensure_ascii=False, indent=2) + "\n```")
+        if result.agent == "official_macro_data":
+            for alias, info in result.data.items():
+                if isinstance(info, dict):
+                    parts.append(f"**{info.get('name', alias)}**")
+                    parts.extend(lines(info))
+                    if info.get("source_url"):
+                        parts.append(f"[Consultar a fonte]({info['source_url']})")
+        else:
+            parts.extend(lines(result.data))
     if result.sources:
         parts.append("**Fontes:** " + "; ".join(result.sources))
     if result.warnings:
