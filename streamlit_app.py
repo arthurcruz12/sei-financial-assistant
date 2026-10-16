@@ -10,7 +10,7 @@ import streamlit as st
 
 from sei_agents import result_to_markdown
 from sei_dashboard import DISPLAY_SERIES, load_series, render_macro_dashboard
-from sei_macro_runtime import SEIMacroOrchestrator
+from sei_multi_agent import MultiAgentChat
 
 # Streamlit Community Cloud keeps credentials in App settings > Secrets.
 # Do not require a local secrets.toml when the app runs in public-data-only mode.
@@ -111,7 +111,7 @@ PAGES = ["Visão geral","Indicadores","Mercados globais","Radar de crise","Liqui
 ICONS = ["▦","⌁","◎","◉","▤","↗","▱","⌕","☆","▣","▢","☷","◷","♢"]
 if "page" not in st.session_state: st.session_state.page = "Visão geral"
 if "messages" not in st.session_state: st.session_state.messages = []
-if "orchestrator" not in st.session_state: st.session_state.orchestrator = SEIMacroOrchestrator()
+if "orchestrator" not in st.session_state: st.session_state.orchestrator = MultiAgentChat()
 
 with st.sidebar:
     st.markdown('<div class="sei-brand"><span class="sei-logo">∿</span> SEI</div><div class="sei-eyebrow" style="padding-left:56px">ECONOMIC INTELLIGENCE</div>', unsafe_allow_html=True)
