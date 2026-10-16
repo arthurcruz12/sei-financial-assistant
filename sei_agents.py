@@ -75,12 +75,15 @@ future_value -> principal, annual_rate, years, compounds_per_year
 loan_payment -> principal, annual_rate, years, payments_per_year
 real_return -> nominal_return, inflation
 """.strip()
-        response = self.client.responses.create(
-            model=self.model,
-            instructions=instructions,
-            input=message,
-        )
-        text = response.output_text.strip()
+        try:
+            response = self.client.responses.create(
+                model=self.model,
+                instructions=instructions,
+                input=message,
+            )
+            text = response.output_text.strip()
+        except Exception:
+            return None
         try:
             payload = json.loads(text)
             return Route(
@@ -104,16 +107,19 @@ real_return -> nominal_return, inflation
                 summary="Pesquisa web indisponível: configure OPENAI_API_KEY e OPENAI_MODEL.",
                 warnings=["Sem credenciais de modelo, o agente de pesquisa não pode consultar a web."],
             )
-        response = self.client.responses.create(
-            model=self.model,
-            tools=[{"type": "web_search"}],
+        try:
+            response = self.client.responses.create(
+                model=self.model,
+                tools=[{"type": "web_search"}],
             instructions=(
                 "Pesquise fontes primárias e confiáveis. Dê prioridade a bancos centrais, institutos estatísticos, "
                 "bolsas, reguladores e documentação oficial. Diferencie fato observado de estimativa. Inclua as fontes na resposta."
             ),
-            input=query,
-        )
-        return AgentResult(agent="research", summary=response.output_text)
+                input=query,
+            )
+            return AgentResult(agent="research", summary=response.output_text)
+        except Exception as exc:
+            return AgentResult(agent="research", summary="Não foi possível consultar a pesquisa com IA neste momento.", warnings=[f"Pesquisa indisponível: {type(exc).__name__}"])
 
     def inspect_chart_image(self, image_bytes: bytes, mime_type: str, user_text: str = "") -> AgentResult:
         if not self.available:
