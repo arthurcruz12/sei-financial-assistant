@@ -5,6 +5,7 @@ import pandas as pd
 import streamlit as st
 
 from macro_analysis import MacroEconometricsAgent
+from quantitative import ols_diagnostics
 from sei_macro_runtime import SEIOfficialMacroHub
 
 DISPLAY_SERIES = {
@@ -64,15 +65,26 @@ def render_macro_dashboard() -> None:
                                   format_func=lambda a: next(k for k,v in DISPLAY_SERIES.items() if v == a))
     if st.button("Calcular regressão com dados reais") and explanatory:
         try:
-            result = MacroEconometricsAgent(hub=SEIOfficialMacroHub()).macro_vs_macro(
-                [dependent, *explanatory], start=start.isoformat(), end=end.isoformat())
-            st.metric("R²", result.data["r_squared"])
-            st.metric("Observações alinhadas", result.data["observations"])
-            st.dataframe(pd.DataFrame(result.data["coefficients"]).T, use_container_width=True)
-            st.write("Correlação", pd.DataFrame(result.data["correlation_matrix"]))
-            st.write("ADF", pd.DataFrame(result.data["adf"]).T)
-            st.caption("Regressão OLS com erros robustos HC3. Associação não implica causalidade.")
-            for url in result.sources:
-                st.caption(url)
+            from macro_analysis import _coarsest_frequency, _resample_macro
+            hub = SEIOfficialMacroHub()
+            aliases = [dependent, *explanatory]
+            series = [hub.get(alias, start=start.isoformat(), end=end.isoformat()) for alias in aliases]
+            freq = _coarsest_frequency(series)
+            panel = pd.concat(
+                [_resample_macro(s.data, freq).rename(alias) for alias, s in zip(aliases, series)],
+                axis=1, join="inner")
+            result = ols_diagnostics(panel, dependent, explanatory)
+            st.metric("R²", round(result["r_squared"], 4))
+            st.metric("Observações alinhadas", result["nobs"])
+            st.write("Frequência comum", freq)
+            st.dataframe(pd.DataFrame(result["coefficients"]).T, use_container_width=True)
+            st.write("Correlação", pd.DataFrame(result["correlation"]))
+            st.write("VIF", result["vif"])
+            st.write("ADF (p-valores)", result["adf_p_values"])
+            st.write("Breusch-Pagan (p-valor)", result["breusch_pagan_p_value"])
+            st.write("Breusch-Godfrey (p-valor)", result["breusch_godfrey_p_value"])
+            st.caption(result["method"] + " " + result["caution"])
+            for s in series:
+                st.caption(f"{s.source} · {s.series_id}: {s.source_url}")
         except Exception as exc:
             st.error(f"Não foi possível estimar a regressão: {exc}")
