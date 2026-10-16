@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import mimetypes
+import os
 from datetime import date, timedelta
 
 import pandas as pd
@@ -10,6 +11,17 @@ import streamlit as st
 from sei_agents import result_to_markdown
 from sei_dashboard import DISPLAY_SERIES, load_series, render_macro_dashboard
 from sei_macro_runtime import SEIMacroOrchestrator
+
+# Streamlit Community Cloud keeps credentials in App settings > Secrets.
+# Do not require a local secrets.toml when the app runs in public-data-only mode.
+for _secret_name in ("OPENAI_API_KEY", "OPENAI_MODEL", "FRED_API_KEY"):
+    if not os.getenv(_secret_name):
+        try:
+            _secret_value = st.secrets.get(_secret_name)
+            if _secret_value:
+                os.environ[_secret_name] = str(_secret_value)
+        except (FileNotFoundError, KeyError):
+            pass
 
 st.set_page_config(page_title="SEI — Inteligência Económica", page_icon="📈", layout="wide", initial_sidebar_state="expanded")
 
