@@ -89,6 +89,10 @@ class MacroIntentTests(unittest.TestCase):
     def test_explicit_oecd(self):
         self.assertEqual(self.parser.aliases("OECD desemprego de Portugal"), ["pt_unemployment_oecd"])
 
+    def test_brazilian_indicators(self):
+        self.assertEqual(self.parser.aliases("Mostra Selic e IPCA"), ["br_selic_target", "br_ipca"])
+        self.assertEqual(self.parser.aliases("USD/BRL"), ["br_usd_brl"])
+
     def test_euribor_tenor(self):
         self.assertEqual(self.parser.aliases("Euribor 12 meses"), ["euribor12m"])
         self.assertEqual(self.parser.aliases("Euribor 6 meses"), ["euribor6m"])
