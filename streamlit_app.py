@@ -15,23 +15,49 @@ st.set_page_config(page_title="SEI — Inteligência Económica", page_icon="�
 
 st.markdown("""
 <style>
-:root { --sei-teal:#008985; --sei-ink:#09243a; }
-.stApp { color:var(--sei-ink); background-color:#f6fafb;
- background-image:linear-gradient(#eaf2f3 1px,transparent 1px),linear-gradient(90deg,#eaf2f3 1px,transparent 1px);
- background-size:26px 26px; }
-[data-testid="stSidebar"] { background:#edf4f5; border-right:1px solid #dae5e8; }
-[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color:#3a6572; }
-.block-container { padding-top:2rem; max-width:1450px; }
-div[data-testid="stVerticalBlockBorderWrapper"] > div { border-color:#dce7e9 !important; border-radius:14px !important; background:#fff; }
-.stButton > button[kind="primary"] { background:#008985; border-color:#008985; }
-h1,h2,h3 { color:#0b273b !important; letter-spacing:-.02em; }
-[data-testid="stMetricValue"] {color:#008985;}
-.sei-eyebrow { font-size:11px; letter-spacing:.16em; font-weight:750; color:#4e8190; text-transform:uppercase; }
-.sei-title { font-size:23px; font-weight:750; color:#09243a; margin:10px 0 5px; }
-.sei-body {color:#5d7b8b;font-size:14px;line-height:1.7;}
-.sei-muted {font-size:12px;color:#668697;}
-.sei-brand {font-size:30px;font-weight:800;letter-spacing:-1px;color:#092e3e;}
-.sei-foot {font-size:12px;color:#78919c;padding-top:10px;border-top:1px solid #dce7e9;}
+:root { --sei-teal:#008985; --sei-ink:#102d3d; }
+.stApp { background-color:#f6fafb;
+ background-image:linear-gradient(#eef4f5 1px,transparent 1px),linear-gradient(90deg,#eef4f5 1px,transparent 1px);
+ background-size:27px 27px; }
+[data-testid="stSidebar"] { background:#eef5f6!important; border-right:1px solid #dae7e9; }
+[data-testid="stSidebar"] > div {background:#eef5f6!important;}
+.block-container { padding-top:2.4rem; padding-bottom:2rem; max-width:1400px; }
+[data-testid="stVerticalBlockBorderWrapper"]:has(>div[data-testid="stVerticalBlock"]) {border-radius:16px;}
+div[data-testid="stVerticalBlockBorderWrapper"][data-testid] > div[style*="border"] {border-radius:16px!important;}
+[data-testid="stVerticalBlockBorderWrapper"]:has([data-testid="stLineChart"]) {
+ border:1px solid #dfe9eb!important; background:white!important; box-shadow:0 3px 14px rgba(15,55,72,.035);}
+[data-testid="stVerticalBlockBorderWrapper"]:has(.sei-eyebrow) {
+ border:1px solid #dce7e9!important; background:#fff!important; border-radius:16px!important;
+ padding:10px 14px!important; box-shadow:0 4px 16px rgba(11,50,65,.045);}
+[data-testid="stSidebar"] .stButton>button {
+ border:0!important; background:transparent!important; color:#385b6b!important;
+ text-align:left!important; justify-content:flex-start!important; font-size:14px!important;
+ box-shadow:none!important; border-radius:9px!important; padding:8px 13px!important;
+ min-height:42px!important; font-weight:500!important;}
+[data-testid="stSidebar"] .stButton>button:hover {background:#deeeee!important;color:#006e76!important;}
+[data-testid="stSidebar"] .stButton>button[kind="primary"] {
+ background:#d7eded!important;color:#007c83!important;font-weight:700!important;}
+.stButton>button[kind="primary"], .stDownloadButton>button[kind="primary"] {
+ background:#008985!important; border:1px solid #008985!important; color:#fff!important;}
+.stButton>button[kind="secondary"],.stDownloadButton>button {
+ background:#fff!important; color:#20455a!important; border:1px solid #d8e4e7!important;
+ border-radius:9px!important;}
+.stButton>button:hover,.stDownloadButton>button:hover {border-color:#008985!important;color:#007c83!important;}
+[data-testid="stSelectbox"] [data-baseweb="select"],[data-testid="stMultiSelect"] [data-baseweb="select"] {
+ background:#fff!important; color:#123249!important; border-radius:9px!important;}
+[data-testid="stSegmentedControl"] button {background:#fff!important;color:#315568!important;border-color:#d9e5e8!important;}
+[data-testid="stSegmentedControl"] button[aria-checked="true"] {background:#ddf0ee!important;color:#007e80!important;}
+[data-testid="stMetricValue"] {color:#008985!important;}
+[data-testid="stChart"] {border-radius:12px;overflow:hidden;}
+h1,h2,h3 { color:#102d3d!important; letter-spacing:-.025em; }
+p, label {color:#3b6273;}
+.sei-eyebrow {font-size:10px;letter-spacing:.16em;font-weight:780;color:#4e8190;text-transform:uppercase;}
+.sei-title {font-size:23px;font-weight:760;color:#0b2c3c;margin:10px 0 8px;}
+.sei-body {color:#567487;font-size:14px;line-height:1.75;}
+.sei-muted {font-size:12px;color:#678798;}
+.sei-brand {font-size:29px;font-weight:800;letter-spacing:-1px;color:#0a3544;}
+.sei-foot {font-size:12px;color:#78919c;padding-top:18px;border-top:1px solid #dce7e9;}
+@media (max-width:850px) {.block-container{padding:1.25rem .75rem!important}.sei-title{font-size:20px}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -44,7 +70,7 @@ if "orchestrator" not in st.session_state: st.session_state.orchestrator = SEIMa
 
 with st.sidebar:
     st.markdown('<div class="sei-brand">〽 SEI</div><div class="sei-eyebrow">ECONOMIC INTELLIGENCE</div>', unsafe_allow_html=True)
-    st.write("")
+    st.markdown("<div style=\"height:25px\"></div>", unsafe_allow_html=True)
     st.markdown('<div class="sei-eyebrow">O SEU ESPAÇO DE ANÁLISE</div>',unsafe_allow_html=True)
     for i,page in enumerate(PAGES):
         if i in (7,11): st.divider()
